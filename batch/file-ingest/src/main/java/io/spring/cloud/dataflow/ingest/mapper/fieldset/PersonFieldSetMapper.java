@@ -32,6 +32,6 @@ public class PersonFieldSetMapper implements FieldSetMapper<Person> {
 		String firstName = fieldSet.readString(0);
 		String lastName = fieldSet.readString(1);
 
-		return new Person(firstName, lastName);
+		return new Person(0L, firstName, lastName);
 	}
 }

@@ -16,11 +16,14 @@
 
 package io.spring.cloud.dataflow.ingest.processor;
 
+import io.spring.cloud.dataflow.ingest.config.BatchProperty;
 import io.spring.cloud.dataflow.ingest.domain.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Processes the providing record, transforming the data into
@@ -28,15 +31,44 @@ import org.springframework.batch.item.ItemProcessor;
  *
  * @author Chris Schaefer
  */
+
 public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersonItemProcessor.class);
 
+
+	@Value("#{jobParameters['action']}")
+	private String stringAction = "NONE";
+
+	public void setStringAction(String action)
+	{
+		this.stringAction = action;
+	}
+
 	@Override
 	public Person process(Person person) throws Exception {
-		String firstName = person.getFirstName().toUpperCase();
-		String lastName = person.getLastName().toUpperCase();
 
-		Person processedPerson = new Person(firstName, lastName);
+		String firstName = person.getFirstName();
+		String lastName = person.getLastName();
+		LOGGER.info("Action is: " + this.stringAction);
+
+		BatchProperty.Action action = BatchProperty.Action.valueOf(stringAction);
+		switch (action)
+		{
+
+			case NONE:
+				  break;
+			case UPPERCASE:
+				firstName = firstName.toUpperCase();
+				lastName = lastName.toUpperCase();
+						break;
+
+			case BACKWARDS:
+				firstName =  new StringBuilder(firstName).reverse().toString();
+				lastName = new StringBuilder(lastName).reverse().toString();
+						break;
+		}
+
+		Person processedPerson = new Person(person.getId(), firstName, lastName);
 
 		LOGGER.info("Processed: " + person + " into: " + processedPerson);
 

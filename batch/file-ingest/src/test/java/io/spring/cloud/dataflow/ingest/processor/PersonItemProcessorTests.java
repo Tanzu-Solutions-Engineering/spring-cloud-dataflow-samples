@@ -16,6 +16,7 @@
 
 package io.spring.cloud.dataflow.ingest.processor;
 
+import io.spring.cloud.dataflow.ingest.config.BatchProperty;
 import io.spring.cloud.dataflow.ingest.domain.Person;
 import org.junit.Test;
 
@@ -35,9 +36,10 @@ public class PersonItemProcessorTests {
 
 	@Test
 	public void testPersonProcessing() throws Exception {
-		Person person = new Person(FIRST_NAME, LAST_NAME);
+		 Person person = new Person(0L, FIRST_NAME, LAST_NAME);
 
-		ItemProcessor<Person, Person> personItemProcessor = new PersonItemProcessor();
+		PersonItemProcessor personItemProcessor = new PersonItemProcessor();
+		personItemProcessor.setStringAction(BatchProperty.Action.UPPERCASE.name());
 		Person transformedPerson = personItemProcessor.process(person);
 
 		assertNotNull("Received null Person", transformedPerson);
@@ -47,5 +49,25 @@ public class PersonItemProcessorTests {
 					 person.getFirstName().toUpperCase(), transformedPerson.getFirstName());
 		assertEquals("Invalid last name processing, should be uppercase",
 					 person.getLastName().toUpperCase(), transformedPerson.getLastName());
+
+		PersonItemProcessor personItemProcessor2 = new PersonItemProcessor();
+		personItemProcessor2.setStringAction(BatchProperty.Action.BACKWARDS.name());
+		Person transformedPerson2 = personItemProcessor2.process(person);
+		assertEquals("Invalid first name processing, should be backwards",
+				new StringBuilder(person.getFirstName()).reverse().toString(), transformedPerson2.getFirstName());
+		assertEquals("Invalid last name processing, should be backwards",
+				new StringBuilder(person.getLastName()).reverse().toString(), transformedPerson2.getLastName());
+
+		PersonItemProcessor personItemProcessor3 = new PersonItemProcessor();
+		personItemProcessor3.setStringAction(BatchProperty.Action.NONE.name());
+		Person transformedPerson3 = personItemProcessor3.process(person);
+		assertEquals("Invalid first name processing, should be same",
+				person.getFirstName(), transformedPerson3.getFirstName());
+		assertEquals("Invalid last name processing, should be same",
+				person.getLastName(), transformedPerson3.getLastName());
+
+
 	}
+
+
 }

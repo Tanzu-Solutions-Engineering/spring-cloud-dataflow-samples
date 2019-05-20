@@ -16,30 +16,21 @@
 
 package io.spring.cloud.dataflow.ingest.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  * Domain object representing data about a Person.
  *
  * @author Chris Schaefer
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Person {
-	private final String firstName;
-	private final String lastName;
+	private  Long id;
+	private  String firstName;
+	private  String lastName;
 
-	public Person(final String firstName, final String lastName) {
-		this.firstName = firstName;
-		this.lastName = lastName;
-	}
-
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	@Override
-	public String toString() {
-		return "First name: " + firstName + " , last name: " + lastName;
-	}
 }

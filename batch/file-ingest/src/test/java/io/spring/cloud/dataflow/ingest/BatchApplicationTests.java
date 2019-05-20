@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 import io.spring.cloud.dataflow.ingest.config.BatchConfiguration;
+import io.spring.cloud.dataflow.ingest.config.BatchProperty;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,16 +30,16 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobRepositoryTestUtils;
+import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * BatchConfiguration test cases
@@ -45,57 +48,122 @@ import static org.junit.Assert.assertNotNull;
  * @author David Turanski
  */
 
+@SpringBatchTest
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { BatchConfiguration.class, BatchApplicationTests.BatchTestConfiguration.class })
+@ContextConfiguration(classes = {BatchConfiguration.class})
+@EnableAutoConfiguration
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class BatchApplicationTests {
 
-	@Autowired
-	private JobLauncherTestUtils jobLauncherTestUtils;
+    @Autowired
+    private JobLauncherTestUtils jobLauncherTestUtils;
 
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JobRepositoryTestUtils jobRepositoryTestUtils;
 
-	@Test
-	public void testBatchConfigurationFail() throws Exception {
 
-		BatchStatus status = jobLauncherTestUtils.launchJob(new JobParametersBuilder().addString(
-			"localFilePath", "classpath:missing-data.csv").toJobParameters()).getStatus();
-		assertEquals("Incorrect batch status", BatchStatus.FAILED, status);
-	}
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-	@Test
-	public void testBatchDataProcessing() throws Exception {
+    @Before
+    public void clearMetadata() {
+        jobRepositoryTestUtils.removeJobExecutions();
+    }
 
-		JobExecution jobExecution = jobLauncherTestUtils.launchJob(new JobParametersBuilder().addString(
-			"localFilePath", "classpath:data.csv").toJobParameters());
+    @After
+    public void cleanup() {
+        jdbcTemplate.execute("delete from people");
+    }
 
-		assertEquals("Incorrect batch status", BatchStatus.COMPLETED, jobExecution.getStatus());
+    @Test
+    public void testBatchFileFail() throws Exception {
 
-		assertEquals("Invalid number of step executions", 1, jobExecution.getStepExecutions().size());
 
-		List<Map<String, Object>> peopleList = jdbcTemplate.queryForList(
-			"select first_name, last_name from people");
+        BatchStatus status = jobLauncherTestUtils.launchJob(new JobParametersBuilder().addString(
+                "filepath", "classpath:missing-data.csv").toJobParameters()).getStatus();
+        assertEquals("Incorrect batch status", BatchStatus.FAILED, status);
+    }
 
-		assertEquals("Incorrect number of results", 5, peopleList.size());
+    @Test
+    public void testBatchDataFileInjest() throws Exception {
 
-		for (Map<String, Object> person : peopleList) {
-			assertNotNull("Received null person", person);
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob(
+                new JobParametersBuilder()
+                        .addString("filepath", "classpath:data.csv")
+                        .toJobParameters());
 
-			String firstName = (String) person.get("first_name");
-			assertEquals("Invalid first name: " + firstName, firstName.toUpperCase(), firstName);
+        CheckJobResult(jobExecution, BatchProperty.Action.NONE);
 
-			String lastName = (String) person.get("last_name");
-			assertEquals("Invalid last name: " + lastName, lastName.toUpperCase(), lastName);
-		}
-	}
+    }
 
-	@Configuration
-	@EnableAutoConfiguration
-	public static class BatchTestConfiguration {
+    @Test
+    public void testBatchDataFileInjestUppercase() throws Exception {
 
-		@Bean
-		public JobLauncherTestUtils jobLauncherTestUtils() {
-			return new JobLauncherTestUtils();
-		}
-	}
+        JobExecution jobExecution3 = jobLauncherTestUtils.launchJob(
+                new JobParametersBuilder()
+                        .addString("filepath", "classpath:data.csv")
+                        .addString("action", "UPPERCASE")
+                        .toJobParameters());
+        CheckJobResult(jobExecution3, BatchProperty.Action.UPPERCASE);
+    }
+
+    @Test
+    public void testBatchDataFileInjestBackwards() throws Exception {
+        JobExecution jobExecution4 = jobLauncherTestUtils.launchJob(
+                new JobParametersBuilder()
+                        .addString("filepath", "classpath:data.csv")
+                        .addString("action", "BACKWARDS")
+                        .toJobParameters());
+        CheckJobResult(jobExecution4, BatchProperty.Action.BACKWARDS);
+    }
+
+    @Test
+    public void testBatchDataNoParams() throws Exception {
+
+        // Use default parameters
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob();
+        CheckJobResult(jobExecution, BatchProperty.Action.NONE);
+
+    }
+
+
+    private void CheckJobResult(JobExecution jobExecution, BatchProperty.Action action) {
+        assertEquals("Incorrect batch status", BatchStatus.COMPLETED, jobExecution.getStatus());
+
+        assertEquals("Invalid number of step executions", 1, jobExecution.getStepExecutions().size());
+
+        List<Map<String, Object>> peopleList = jdbcTemplate.queryForList(
+                "select first_name, last_name from people");
+
+        assertEquals("Incorrect number of results", 5, peopleList.size());
+
+        for (Map<String, Object> person : peopleList) {
+            assertNotNull("Received null person", person);
+
+            String firstName = (String) person.get("first_name");
+            String lastName = (String) person.get("last_name");
+            String expectedFirsName = "John";
+            String expectedLastName = "Doe";
+            switch (action) {
+                case NONE:
+                    break;
+
+                case UPPERCASE:
+                    expectedFirsName = expectedFirsName.toUpperCase();
+                    expectedLastName = expectedLastName.toUpperCase();
+                    break;
+
+                case BACKWARDS:
+                    expectedFirsName = new StringBuilder(expectedFirsName).reverse().toString();
+                    expectedLastName = new StringBuilder(expectedLastName).reverse().toString();
+                    break;
+            }
+            assertEquals("Invalid first name: " + firstName, expectedFirsName, firstName);
+
+            assertEquals("Invalid last name: " + lastName, expectedLastName, lastName);
+        }
+
+
+    }
+
 }

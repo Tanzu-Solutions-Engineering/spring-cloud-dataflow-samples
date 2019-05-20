@@ -21,9 +21,6 @@ import com.google.common.base.Strings;
 import io.spring.cloud.dataflow.ingest.domain.Person;
 import io.spring.cloud.dataflow.ingest.mapper.fieldset.PersonFieldSetMapper;
 import io.spring.cloud.dataflow.ingest.processor.PersonItemProcessor;
-
-import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -37,6 +34,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
+import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +42,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+
+import javax.sql.DataSource;
 
 
 /**
@@ -56,9 +56,9 @@ import org.springframework.core.io.ResourceLoader;
 @EnableConfigurationProperties({BatchProperty.class})
 @EnableBatchProcessing
 
-public class BatchConfiguration {
+public class DatabaseConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BatchConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseConfiguration.class);
 
     private final DataSource dataSource;
 
@@ -68,14 +68,13 @@ public class BatchConfiguration {
 
     private final StepBuilderFactory stepBuilderFactory;
 
-
     @Autowired
     private BatchProperty batchProperty;
 
     @Autowired
-    public BatchConfiguration(final DataSource dataSource, final JobBuilderFactory jobBuilderFactory,
-                              final StepBuilderFactory stepBuilderFactory,
-                              final ResourceLoader resourceLoader) {
+    public DatabaseConfiguration(final DataSource dataSource, final JobBuilderFactory jobBuilderFactory,
+                                 final StepBuilderFactory stepBuilderFactory,
+                                 final ResourceLoader resourceLoader) {
         this.dataSource = dataSource;
         this.resourceLoader = resourceLoader;
         this.jobBuilderFactory = jobBuilderFactory;
@@ -83,67 +82,52 @@ public class BatchConfiguration {
     }
 
 
-    @Bean
-    @StepScope
-    public ItemStreamReader<Person> fileReader(@Value("#{jobParameters['filepath']}") String filePath) {
-
-        if (Strings.isNullOrEmpty(filePath)) {
-            filePath = batchProperty.getFilepath();
-        }
-
-        if (!filePath.matches("[a-z]+:.*")) {
-            filePath = "file:" + filePath;
-        }
 
 
-        return new FlatFileItemReaderBuilder<Person>()
-                .name("fileReader")
-                .resource(resourceLoader.getResource(filePath))
-                .delimited()
-                .names(new String[]{"firstName", "lastName"})
-                .fieldSetMapper(new PersonFieldSetMapper())
-                .build();
-    }
-
-
-    @Bean(name="filePersonProcessor")
+    @Bean(name="dbPersonProcessor")
     @StepScope
     public ItemProcessor<Person, Person> processor() {
 
         return new PersonItemProcessor();
     }
 
+    @Bean
+    public ItemStreamReader<Person> databaseReader() {
+        return new JdbcCursorItemReaderBuilder<Person>()
+                .name("databaseReader")
+                .beanRowMapper(Person.class)
+                .dataSource(this.dataSource)
+                .sql("SELECT person_id as id, first_name, last_name FROM people")
+                .build();
+    }
 
     @Bean
-    public ItemWriter<Person> databaseInserterWriter() {
+    public ItemWriter<Person> databaseUpdaterWriter() {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("INSERT INTO people (first_name, last_name) VALUES (:firstName, :lastName)")
+                .sql("UPDATE people SET first_name = :firstName,  last_name = :lastName WHERE person_id = :id")
                 .build();
     }
 
-    @Bean
-    public Job fileIngestJob() {
 
-        return jobBuilderFactory.get("fileIngestJob")
+    @Bean
+    public Job transformNamesJob() {
+        return jobBuilderFactory.get("transformNamesJob")
                 .incrementer(new RunIdIncrementer())
-                .flow(stepFile())
+                .flow(stepDatabase())
                 .end()
                 .build();
+
     }
-
-
 
     @Bean
-    public Step stepFile() {
-        return stepBuilderFactory.get("ingestFile")
+    public Step stepDatabase() {
+        return stepBuilderFactory.get("transformNames")
                 .<Person, Person>chunk(10)
-                .reader(fileReader(null))
+                .reader(databaseReader())
                 .processor(processor())
-                .writer(databaseInserterWriter())
+                .writer(databaseUpdaterWriter())
                 .build();
     }
-
-
 }
