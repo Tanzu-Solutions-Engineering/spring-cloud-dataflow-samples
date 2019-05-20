@@ -52,13 +52,12 @@ import org.springframework.core.io.ResourceLoader;
  * @author Chris Schaefer
  * @author David Turanski
  */
-@Configuration
-@EnableConfigurationProperties({BatchProperty.class})
-@EnableBatchProcessing
-
+//@Configuration
+//@EnableConfigurationProperties({BatchProperty.class})
+//@EnableBatchProcessing
 public class BatchConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BatchConfiguration.class);
+    /*private static final Logger LOGGER = LoggerFactory.getLogger(BatchConfiguration.class);
 
     private final DataSource dataSource;
 
@@ -144,6 +143,6 @@ public class BatchConfiguration {
                 .writer(databaseInserterWriter())
                 .build();
     }
-
+*/
 
 }

@@ -55,7 +55,6 @@ import javax.sql.DataSource;
 @Configuration
 @EnableConfigurationProperties({BatchProperty.class})
 @EnableBatchProcessing
-
 public class DatabaseConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseConfiguration.class);

@@ -16,6 +16,7 @@
 
 package io.spring.cloud.dataflow.ingest.processor;
 
+import com.google.common.base.Strings;
 import io.spring.cloud.dataflow.ingest.config.BatchProperty;
 import io.spring.cloud.dataflow.ingest.domain.Person;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -37,7 +39,11 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 
 
 	@Value("#{jobParameters['action']}")
-	private String stringAction = "NONE";
+	private String stringAction = "";
+
+
+	@Autowired
+	private BatchProperty batchProperty;
 
 	public void setStringAction(String action)
 	{
@@ -49,6 +55,12 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 
 		String firstName = person.getFirstName();
 		String lastName = person.getLastName();
+
+		if(Strings.isNullOrEmpty(this.stringAction))
+		{
+			stringAction = batchProperty.getAction();
+		}
+
 		LOGGER.info("Action is: " + this.stringAction);
 
 		BatchProperty.Action action = BatchProperty.Action.valueOf(stringAction);
