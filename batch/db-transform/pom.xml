@@ -3,7 +3,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.spring.cloud.dataflow.batch</groupId>
-    <artifactId>ingest</artifactId>
+    <artifactId>dbtransform</artifactId>
     <version>1.0.0.BUILD-SNAPSHOT</version>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -19,11 +19,11 @@
         <docker.org>springcloud</docker.org>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>io.spring.cloud.dataflow.batch</groupId>
-            <artifactId>core</artifactId>
-            <version>1.0.0.BUILD-SNAPSHOT</version>
-        </dependency>
+      <dependency>
+          <groupId>io.spring.cloud.dataflow.batch</groupId>
+          <artifactId>core</artifactId>
+          <version>1.0.0.BUILD-SNAPSHOT</version>
+      </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-batch</artifactId>
