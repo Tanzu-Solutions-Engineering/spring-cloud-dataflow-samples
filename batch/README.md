@@ -149,10 +149,22 @@ task launch DbUppercaseTask --arguments "--increment-instance-enabled=true"
 ```
 
 ### Composed Task that demos Distributed Saga Pattern
+We will now create a task flow that implements a simple batch Distributed Saga pattern using the above 2 batch applications.
 
-We will create a composed task that looks like the following when created:
-![Distributed Saga]()
+The flow imports a file, converts to UPPERCASE and if that succeeds, it will reverse (BACKWARDS) the names. If there is a failure, it will 
+convert it back to LOWERCASE undoing the UPPERCASE operation.
+   
+In this example we only want to undo the UPPERCASE so we are only undoing that. We could also undo the file import by adding another failure condition.
 
-
-Import: Demo-ImportFileApp && Uppercase: Demo-DbTransformApp '*'->Backwards: Demo-DbTransformApp 'FAILED'->Lowercase: Demo-DbTransformApp
 #### Create the Composed Task
+```bash
+task create ImportUppercaseBackwards --definition "Import: Demo-ImportFileApp --filepath=classpath:data.csv && Uppercase: Demo-DbTransformApp --action=UPPERCASE '*'->Backwards: Demo-DbTransformApp --action=BACKWARDS 'FAILED'->Lowercase: Demo-DbTransformApp --action=LOWERCASE"
+```
+
+This will create a composed task that looks like the following when created using the SCDF UI:
+![alt text](DS-ComposedTask.png)
+
+#### Run the task
+```bash
+task launch ImportUppercaseBackwards --arguments "--increment-instance-enabled=true"
+```
