@@ -4,7 +4,7 @@ The projects here contain Spring Batch based applications used to demo [Composed
 
 ## Requirements
 - wget
-- Java 1.8+ 
+- Java 1.8+
 - Maven
 - Database tool to query MySQL to verify results.(Make sure to expose MySQL port locally if using docker)
 - Python 3+ (Only to run local webserver to make it easier for SCDF to load our apps)
@@ -17,18 +17,22 @@ Download docker-compose file
 ```
 wget https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/2.1.0.RELEASE/spring-cloud-dataflow-server/docker-compose.yml
 ```
+If you do not have wget installed, you can open the link above in a web browser and save it to your machine.
 
-Expose MySQL port so we can use a DB visiblewer to verify results.
+Expose MySQL port so we can use it to verify results.
+
 - Open the docker-compose.yml file that we downloaded and add the following lines to the `mysql` section
 
 ```
 ports:
         - "33061:3306"
 ```
-
 Start it up!
+From the directory where the docker-compose.yml is saved, run:
 ```
-DATAFLOW_VERSION=2.1.0.RELEASE SKIPPER_VERSION=2.0.2.RELEASE docker-compose up
+export DATAFLOW_VERSION=2.1.0.RELEASE
+export SKIPPER_VERSION=2.0.2.RELEASE
+docker-compose up
 
 ```
 
