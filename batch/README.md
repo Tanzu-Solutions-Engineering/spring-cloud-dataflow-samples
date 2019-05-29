@@ -150,4 +150,9 @@ task launch DbUppercaseTask --arguments "--increment-instance-enabled=true"
 
 ### Composed Task that demos Distributed Saga Pattern
 
+We will create a composed task that looks like the following when created:
+![Distributed Saga]()
+
+
+Import: Demo-ImportFileApp && Uppercase: Demo-DbTransformApp '*'->Backwards: Demo-DbTransformApp 'FAILED'->Lowercase: Demo-DbTransformApp
 #### Create the Composed Task
