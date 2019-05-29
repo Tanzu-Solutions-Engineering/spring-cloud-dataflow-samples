@@ -39,6 +39,10 @@ ports:
         - "33061:3306"
 ```
 
+ADD the following line to the `dataflow:environment` section:
+```yaml
+    - spring.cloud.task.batch.failOnJobFailure=true
+```
 
 Start it up!
 From the directory where the docker-compose.yml is saved, run:
@@ -126,7 +130,7 @@ task launch ImportTask --arguments "--increment-instance-enabled=true"
 
 #### Register the db-transform app
 ```bash
-app register --name Demo-DbTransformApp --type task --uri http://host.docker.internal:8000/db-transform-1.0.0.BUILD-SNAPSHOT.jar
+app register --name Demo-DbTransformApp --type task --uri http://host.docker.internal:8000/dbtransform-1.0.0.BUILD-SNAPSHOT.jar
 ```
 
 #### Verify

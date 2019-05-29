@@ -17,6 +17,7 @@
 package io.spring.cloud.dataflow.batch.dbtransform.config;
 
 
+import com.google.common.base.Strings;
 import io.spring.cloud.dataflow.batch.domain.Person;
 import io.spring.cloud.dataflow.batch.processor.PersonItemProcessor;
 import org.slf4j.Logger;
@@ -83,7 +84,12 @@ public class DatabaseConfiguration {
     @StepScope
     public ItemProcessor<Person, Person> processor() {
 
-        return new PersonItemProcessor();
+        PersonItemProcessor processor =  new PersonItemProcessor();
+        if(batchProperty!=null && !Strings.isNullOrEmpty(batchProperty.getAction()))
+        {
+            processor.setStringAction(batchProperty.getAction());
+        }
+        return processor;
     }
 
     @Bean
