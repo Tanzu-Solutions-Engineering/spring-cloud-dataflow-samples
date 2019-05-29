@@ -3,10 +3,9 @@
 The projects here contain Spring Batch based applications used to demo [Composed Task](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-composed-task/)
 
 ## Requirements
-- Spring Cloud Dataflow [installed](https://dataflow.spring.io/docs/installation/) locally
-- Ability to upload apps to Spring Cloud Dataflow ( via file system visible to docker or http access or maven repo)
+- wget
+- Java 1.8+ 
 - Maven
-- Java 1.8+
 - Database tool to query MySQL to verify results.(Make sure to expose MySQL port locally if using docker)
 - Python 3+ (Only to run local webserver to make it easier for SCDF to load our apps)
 
