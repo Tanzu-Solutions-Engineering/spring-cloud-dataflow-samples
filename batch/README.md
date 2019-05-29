@@ -162,7 +162,7 @@ task create ImportUppercaseBackwards --definition "Import: Demo-ImportFileApp --
 ```
 
 This will create a composed task that looks like the following when created using the SCDF UI:
-![alt text](DS-ComposedTask.png)
+![alt text](ComposedFlow.png)
 
 #### Run the task
 ```bash
