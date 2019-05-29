@@ -63,10 +63,19 @@ Connect your favorite MySQL viewer to port 33061 on localhost. username:root pas
 
 ## Build
 
-Run the following command for each module above. `core` needs to be built first!
+### Download the code
+
 
 ```bash
-$mvn clean package
+git clone https://github.com/Pivotal-Field-Engineering/spring-cloud-dataflow-samples.git
+```
+
+Build all the modules.
+
+```bash
+cd spring-cloud-dataflow-samples/batch
+mvn clean package
+
 ```
 
 
