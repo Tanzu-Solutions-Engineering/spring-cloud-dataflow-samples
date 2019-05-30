@@ -39,12 +39,13 @@ ports:
         - "33061:3306"
 ```
 
+### Add property to treat batch job failures as cloud task failures
 ADD the following line to the `dataflow:environment` section:
 ```yaml
     - spring.cloud.task.batch.failOnJobFailure=true
 ```
 
-Start it up!
+### Start SCDF
 From the directory where the docker-compose.yml is saved, run:
 
 ```bash
@@ -56,7 +57,6 @@ docker-compose up
 
 Connect your favorite MySQL viewer to port 33061 on localhost. username:root password:rootpw
 
-###
 
 ## Modules
 
@@ -74,7 +74,7 @@ Connect your favorite MySQL viewer to port 33061 on localhost. username:root pas
 git clone https://github.com/Pivotal-Field-Engineering/spring-cloud-dataflow-samples.git
 ```
 
-Build all the modules.
+### Build all the modules.
 
 ```bash
 cd spring-cloud-dataflow-samples/batch
@@ -83,10 +83,13 @@ mvn clean package
 ```
 
 
-## How to Run
-The following instructions assume you are running it locally using docker. To make it easy to register the application with SCDF locally, copy the file-ingest and db-transform jar files to a common directory and run a web server in the directory so SCDF.
+## Running the tasks
 
-From the batch directoy run
+The following instructions assume you are running it locally using the SCDF docker-compose file.
+To make it easy to register the application with SCDF locally, copy the file-ingest and db-transform jar files to a common directory `tasks` 
+and run a web server in the directory so SCDF can load it from there.
+
+From the `spring-cloud-dataflow-samples/batch` directoy run:
 
 ```bash
 mkdir tasks
@@ -103,68 +106,81 @@ We will use the SCDF shell to install our applications. To run:
 docker exec -it dataflow-server java -jar shell.jar
 ```
 
-### Simple File Ingest
+## Simple File Ingest
 
-#### Register the file-ingest app
+### Register the file-ingest app with SCDF
 
 ```bash
 app register --name Demo-ImportFileApp --type task --uri http://host.docker.internal:8000/ingest-1.0.0.BUILD-SNAPSHOT.jar
 ```
 
-#### Verify
+### Verify
 ```bash
 app info --name Demo-ImportFileApp --type task
 ```
 
-#### Create task
+### Create task
 ```bash
-task create ImportTask --definition "ImportFile: Demo-ImportFileApp --filepath=classpath:data.csv"
+task create ImportTask --definition "ImportFile: Demo-ImportFileApp --file-path=classpath:data.csv"
 ```
 
-#### Run the task
+### Run the task
 ```bash
 task launch ImportTask --arguments "--increment-instance-enabled=true"
 ```
 
-### Database Transform
+## Database Transform
 
-#### Register the db-transform app
+### Register the db-transform app
 ```bash
 app register --name Demo-DbTransformApp --type task --uri http://host.docker.internal:8000/dbtransform-1.0.0.BUILD-SNAPSHOT.jar
 ```
 
-#### Verify
+### Verify
 ```bash
 app info --name Demo-DbTransformApp --type task
 ```
 
-#### Create task
+### Create task
 ```bash
 task create DbUppercaseTask --definition "Uppercase: Demo-DbTransformApp --action=UPPERCASE"
 ```
 
-#### Run the task
+### Run the task
 ```bash
 task launch DbUppercaseTask --arguments "--increment-instance-enabled=true"
 ```
 
-### Composed Task that demos Distributed Saga Pattern
+## Composed Task that demos Distributed Saga Pattern
 We will now create a task flow that implements a simple batch Distributed Saga pattern using the above 2 batch applications.
 
 The flow imports a file, converts to UPPERCASE and if that succeeds, it will reverse (BACKWARDS) the names. If there is a failure, it will 
 convert it back to LOWERCASE undoing the UPPERCASE operation.
    
-In this example we only want to undo the UPPERCASE so we are only undoing that. We could also undo the file import by adding another failure condition.
+In this example we only want to undo the UPPERCASE so we are only undoing that.
 
-#### Create the Composed Task
+### Happy Path  
+### Create the Composed Task 
 ```bash
-task create ImportUppercaseBackwards --definition "Import: Demo-ImportFileApp --filepath=classpath:data.csv && Uppercase: Demo-DbTransformApp --action=UPPERCASE '*'->Backwards: Demo-DbTransformApp --action=BACKWARDS 'FAILED'->Lowercase: Demo-DbTransformApp --action=LOWERCASE"
+task create ImportUpperBack --definition "Import: Demo-ImportFileApp --file-path=classpath:1-names.csv && Uppercase: Demo-DbTransformApp --action=UPPERCASE 'COMPLETED'->Backwards: Demo-DbTransformApp --action=BACKWARDS '*'->Lowercase: Demo-DbTransformApp --action=LOWERCASE"
 ```
 
 This will create a composed task that looks like the following when created using the SCDF UI:
 ![alt text](ComposedFlow.png)
 
-#### Run the task
+### Run the task
 ```bash
-task launch ImportUppercaseBackwards --arguments "--increment-instance-enabled=true"
+task launch ImportUpperBack --arguments "--increment-instance-enabled=true"
 ```
+
+### Business Failure Path  
+### Create the Composed Task 
+```bash
+task create ImportUpperBackFail --definition "Import: Demo-ImportFileApp --file-path=classpath:bf-names.csv && Uppercase: Demo-DbTransformApp --action=UPPERCASE 'COMPLETED'->Backwards: Demo-DbTransformApp --action=BACKWARDS '*'->Lowercase: Demo-DbTransformApp --action=LOWERCASE"
+```
+
+### Run the task
+```bash
+task launch ImportUpperBackFail --arguments "--increment-instance-enabled=true"
+```
+

@@ -14,17 +14,18 @@ public class BatchProperty {
      String filePath = "classpath:data.csv";
 
     /**
-     * Action to perform. NONE by default
+     * Action to perform on the names. Values can be NONE, UPPERCASE,LOWERCASE, BACKWARDS
+     *  NONE is the default if no action is specified.
      */
     PersonItemProcessor.Action action = PersonItemProcessor.Action.NONE;
 
 
-    public String getFilepath() {
+    public String getFilePath() {
         Assert.hasText(filePath, "format must not be empty nor null");
         return filePath;
     }
 
-    public void setFilepath(String filePath) {
+    public void setFilePath(String filePath) {
         this.filePath = filePath;
     }
 

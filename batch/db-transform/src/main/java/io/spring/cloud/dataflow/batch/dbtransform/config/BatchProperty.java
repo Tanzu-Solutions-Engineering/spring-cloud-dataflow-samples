@@ -7,7 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class BatchProperty {
 
     /**
-     * Action to perform. NONE by default
+     * Action to perform on the names. Values can be NONE, UPPERCASE,LOWERCASE, BACKWARDS
+     *  NONE is the default if no action is specified.
      */
     PersonItemProcessor.Action action = PersonItemProcessor.Action.NONE;
 

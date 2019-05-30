@@ -87,7 +87,7 @@ public class BatchConfiguration {
     public ItemStreamReader<Person> fileReader(@Value("#{jobParameters['filepath']}") String filePath) {
 
         if (Strings.isNullOrEmpty(filePath)) {
-            filePath = batchProperty.getFilepath();
+            filePath = batchProperty.getFilePath();
         }
 
         if (!filePath.matches("[a-z]+:.*")) {
