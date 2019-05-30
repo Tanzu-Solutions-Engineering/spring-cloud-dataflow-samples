@@ -61,8 +61,8 @@ Connect your favorite MySQL viewer to port 33061 on localhost. username:root pas
 ## Modules
 
 - **core:** Contains common code used by the rest of the applications
-- **file-ingest:** Spring batch application that reads first name and last name from a given csv file as `filepath` parameter and write to the database table called `persons`. The default behavior of the common [PersonItemProcessor](batch/core/src/main/java/io/spring/cloud/dataflow/batch/processor/PersonItemProcessor.java) is to not do anything to the payload
-- **db-transform:** Spring batch application that reads first name and last name from `persons` table and apply an optional transformation via the [PersonItemProcessor](batch/core/src/main/java/io/spring/cloud/dataflow/batch/processor/PersonItemProcessor.java). The options supported are "NONE","UPPERCASE","LOWERCASE","BACKWARDS"
+- **file-ingest:** Spring batch application that reads first name and last name from a given csv file as `filepath` parameter and write to the database table called `persons`. The default behavior of the common [PersonItemProcessor](core/src/main/java/io/spring/cloud/dataflow/batch/processor/PersonItemProcessor.java) is to not do anything to the payload
+- **db-transform:** Spring batch application that reads first name and last name from `persons` table and apply an optional transformation via the [PersonItemProcessor](core/src/main/java/io/spring/cloud/dataflow/batch/processor/PersonItemProcessor.java). The options supported are "NONE","UPPERCASE","LOWERCASE","BACKWARDS"
 
 
 ## Build
