@@ -160,7 +160,7 @@ convert it back to LOWERCASE undoing the UPPERCASE operation.
 In this example we only want to undo the UPPERCASE so we are only undoing that.
 
 ### Happy Path  
-### Create the Composed Task 
+#### Create the Composed Task 
 ```bash
 task create ImportUpperBack --definition "Import: Demo-ImportFileApp --file-path=classpath:1-names.csv && Uppercase: Demo-DbTransformApp --action=UPPERCASE 'COMPLETED'->Backwards: Demo-DbTransformApp --action=BACKWARDS '*'->Lowercase: Demo-DbTransformApp --action=LOWERCASE"
 ```
@@ -168,19 +168,28 @@ task create ImportUpperBack --definition "Import: Demo-ImportFileApp --file-path
 This will create a composed task that looks like the following when created using the SCDF UI:
 ![alt text](ComposedFlow.png)
 
-### Run the task
+#### Run the task
 ```bash
 task launch ImportUpperBack --arguments "--increment-instance-enabled=true"
 ```
 
 ### Business Failure Path  
-### Create the Composed Task 
+#### Create the Composed Task 
 ```bash
 task create ImportUpperBackFail --definition "Import: Demo-ImportFileApp --file-path=classpath:bf-names.csv && Uppercase: Demo-DbTransformApp --action=UPPERCASE 'COMPLETED'->Backwards: Demo-DbTransformApp --action=BACKWARDS '*'->Lowercase: Demo-DbTransformApp --action=LOWERCASE"
 ```
 
-### Run the task
+#### Run the task
 ```bash
 task launch ImportUpperBackFail --arguments "--increment-instance-enabled=true"
 ```
+
+
+#Resources
+
+Helpful resources to get some background on this work
+
+##Distributed Sagas
+
+[Distributed Sagas: A Protocol for Coordinating Microservices](https://youtu.be/0UTOLRTwOX0) - Caitie McCaffrey 
 
