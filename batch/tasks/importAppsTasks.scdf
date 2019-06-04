@@ -1,0 +1,5 @@
+app register --name Manager_1 --type task --uri file://opt/app/tasks/ingest-1.0.0.BUILD-SNAPSHOT.jar
+app register --name Manager_2 --type task --uri file://opt/app/tasks/db-uppercase-1.0.0.BUILD-SNAPSHOT.jar
+app register --name Manager_3 --type task --uri file://opt/app/tasks/db-reverse-1.0.0.BUILD-SNAPSHOT.jar
+app register --name Comp_Manager_2 --type task --uri file://opt/app/tasks/db-lowercase-1.0.0.BUILD-SNAPSHOT.jar
+app register --name Comp_Manager_3 --type task --uri file://opt/app/tasks/db-delete-1.0.0.BUILD-SNAPSHOT.jar

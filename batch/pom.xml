@@ -16,8 +16,11 @@
 
     <modules>
         <module>core</module>
-        <module>db-transform</module>
         <module>file-ingest</module>
+        <module>db-uppercase</module>
+        <module>db-reverse</module>
+        <module>db-lowercase</module>
+        <module>db-delete</module>
     </modules>
 
     <build>

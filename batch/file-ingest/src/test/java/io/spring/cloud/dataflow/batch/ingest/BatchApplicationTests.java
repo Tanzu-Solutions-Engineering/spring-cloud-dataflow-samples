@@ -34,7 +34,9 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,7 +55,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {BatchConfiguration.class})
 @EnableAutoConfiguration
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class BatchApplicationTests {
 
     @Autowired
@@ -73,7 +75,7 @@ public class BatchApplicationTests {
 
     @After
     public void cleanup() {
-        jdbcTemplate.execute("delete from people");
+        jdbcTemplate.execute("delete from Manager_1");
     }
 
     @Test
@@ -81,7 +83,7 @@ public class BatchApplicationTests {
 
 
         BatchStatus status = jobLauncherTestUtils.launchJob(new JobParametersBuilder().addString(
-                "filepath", "classpath:missing-data.csv").toJobParameters()).getStatus();
+                "file-path", "classpath:missing-data.csv").toJobParameters()).getStatus();
         assertEquals("Incorrect batch status", BatchStatus.FAILED, status);
     }
 
@@ -90,7 +92,7 @@ public class BatchApplicationTests {
 
         JobExecution jobExecution = jobLauncherTestUtils.launchJob(
                 new JobParametersBuilder()
-                        .addString("filepath", "classpath:data.csv")
+                        .addString("file-path", "classpath:data.csv")
                         .toJobParameters());
 
         CheckJobResult(jobExecution, PersonItemProcessor.Action.NONE);
@@ -102,7 +104,7 @@ public class BatchApplicationTests {
 
         JobExecution jobExecution3 = jobLauncherTestUtils.launchJob(
                 new JobParametersBuilder()
-                        .addString("filepath", "classpath:data.csv")
+                        .addString("file-path", "classpath:data.csv")
                         .addString("action", "UPPERCASE")
                         .toJobParameters());
         CheckJobResult(jobExecution3, PersonItemProcessor.Action.UPPERCASE);
@@ -112,10 +114,10 @@ public class BatchApplicationTests {
     public void testBatchDataFileInjestBackwards() throws Exception {
         JobExecution jobExecution4 = jobLauncherTestUtils.launchJob(
                 new JobParametersBuilder()
-                        .addString("filepath", "classpath:data.csv")
-                        .addString("action", "BACKWARDS")
+                        .addString("file-path", "classpath:data.csv")
+                        .addString("action", "REVERSE")
                         .toJobParameters());
-        CheckJobResult(jobExecution4, PersonItemProcessor.Action.BACKWARDS);
+        CheckJobResult(jobExecution4, PersonItemProcessor.Action.REVERSE);
     }
 
     @Test
@@ -133,8 +135,14 @@ public class BatchApplicationTests {
 
         assertEquals("Invalid number of step executions", 1, jobExecution.getStepExecutions().size());
 
+        CheckResultInDatabase(action);
+
+
+    }
+
+    private void CheckResultInDatabase(PersonItemProcessor.Action action) {
         List<Map<String, Object>> peopleList = jdbcTemplate.queryForList(
-                "select first_name, last_name from people");
+                "select first_name, last_name from Manager_1");
 
         assertEquals("Incorrect number of results", 5, peopleList.size());
 
@@ -154,7 +162,7 @@ public class BatchApplicationTests {
                     expectedLastName = expectedLastName.toUpperCase();
                     break;
 
-                case BACKWARDS:
+                case REVERSE:
                     expectedFirsName = new StringBuilder(expectedFirsName).reverse().toString();
                     expectedLastName = new StringBuilder(expectedLastName).reverse().toString();
                     break;
@@ -163,8 +171,6 @@ public class BatchApplicationTests {
 
             assertEquals("Invalid last name: " + lastName, expectedLastName, lastName);
         }
-
-
     }
 
 }

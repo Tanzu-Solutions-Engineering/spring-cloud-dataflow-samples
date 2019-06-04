@@ -49,7 +49,7 @@ public class PersonItemProcessorTests {
 					 person.getLastName().toUpperCase(), transformedPerson.getLastName());
 
 		PersonItemProcessor personItemProcessor2 = new PersonItemProcessor();
-		personItemProcessor2.setStringAction(PersonItemProcessor.Action.BACKWARDS.name());
+		personItemProcessor2.setStringAction(PersonItemProcessor.Action.REVERSE.name());
 		Person transformedPerson2 = personItemProcessor2.process(person);
 		assertEquals("Invalid first name processing, should be backwards",
 				new StringBuilder(person.getFirstName()).reverse().toString(), transformedPerson2.getFirstName());

@@ -14,7 +14,7 @@ public class BatchProperty {
      String filePath = "classpath:data.csv";
 
     /**
-     * Action to perform on the names. Values can be NONE, UPPERCASE,LOWERCASE, BACKWARDS
+     * Action to perform on the names. Values can be NONE, UPPERCASE,LOWERCASE, REVERSE
      *  NONE is the default if no action is specified.
      */
     PersonItemProcessor.Action action = PersonItemProcessor.Action.NONE;

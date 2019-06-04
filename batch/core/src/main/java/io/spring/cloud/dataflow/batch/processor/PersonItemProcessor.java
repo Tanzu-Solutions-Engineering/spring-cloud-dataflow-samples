@@ -17,11 +17,13 @@
 package io.spring.cloud.dataflow.batch.processor;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import io.spring.cloud.dataflow.batch.domain.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Value;
+
+import java.util.*;
 
 /**
  * Processes the providing record, transforming the data into
@@ -34,7 +36,7 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersonItemProcessor.class);
 
 
-	@Value("#{jobParameters['action']}")
+
 	private String stringAction = "NONE";
 
 
@@ -43,12 +45,24 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 		NONE,
 		UPPERCASE,
 		LOWERCASE,
-		BACKWARDS
+		REVERSE;
+
+		public static Set<String> strValues() {
+			Set<String> ret = Sets.newHashSet();
+			for (Action action : Action.values()) {
+				ret.add(action.toString());
+			}
+			return ret;
+		}
 	}
+
+
 
 	public void setStringAction(String action)
 	{
-		this.stringAction = action;
+		if(Action.strValues().contains(action)) {
+			this.stringAction = action;
+		}
 	}
 
 	@Override
@@ -83,7 +97,11 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 				firstName = firstLetterCaps(firstName);
 				lastName = firstLetterCaps(lastName);
 						break;
-			case BACKWARDS:
+			case REVERSE:
+				if(firstName.equalsIgnoreCase("Paul") && lastName.equalsIgnoreCase("McCartney"))
+				{
+					throw new RuntimeException("Paul McCartney is dead :-)");
+				}
 				firstName =  new StringBuilder(firstName).reverse().toString();
 				lastName = new StringBuilder(lastName).reverse().toString();
 						break;

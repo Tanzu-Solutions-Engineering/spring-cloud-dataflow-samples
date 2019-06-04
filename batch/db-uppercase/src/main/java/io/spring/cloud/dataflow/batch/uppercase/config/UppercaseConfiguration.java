@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package io.spring.cloud.dataflow.batch.ingest.config;
+package io.spring.cloud.dataflow.batch.uppercase.config;
 
 
-import com.google.common.base.Strings;
 import io.spring.cloud.dataflow.batch.domain.Person;
-import io.spring.cloud.dataflow.batch.ingest.mapper.fieldset.PersonFieldSetMapper;
 import io.spring.cloud.dataflow.batch.processor.PersonItemProcessor;
-
-import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -37,13 +32,14 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+
+import javax.sql.DataSource;
 
 
 /**
@@ -53,11 +49,11 @@ import org.springframework.core.io.ResourceLoader;
  * @author David Turanski
  */
 @Configuration
-@EnableConfigurationProperties({BatchProperty.class})
+@EnableConfigurationProperties({UppercaseBatchProperty.class})
 @EnableBatchProcessing
-public class BatchConfiguration {
+public class UppercaseConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BatchConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UppercaseConfiguration.class);
 
     private final DataSource dataSource;
 
@@ -67,14 +63,13 @@ public class BatchConfiguration {
 
     private final StepBuilderFactory stepBuilderFactory;
 
+    @Autowired
+    private UppercaseBatchProperty uppercaseBatchProperty;
 
     @Autowired
-    private BatchProperty batchProperty;
-
-    @Autowired
-    public BatchConfiguration(final DataSource dataSource, final JobBuilderFactory jobBuilderFactory,
-                              final StepBuilderFactory stepBuilderFactory,
-                              final ResourceLoader resourceLoader) {
+    public UppercaseConfiguration(final DataSource dataSource, final JobBuilderFactory jobBuilderFactory,
+                                  final StepBuilderFactory stepBuilderFactory,
+                                  final ResourceLoader resourceLoader) {
         this.dataSource = dataSource;
         this.resourceLoader = resourceLoader;
         this.jobBuilderFactory = jobBuilderFactory;
@@ -82,68 +77,56 @@ public class BatchConfiguration {
     }
 
 
-    @Bean
+
+
+    @Bean(name="uppercaseProcessor")
     @StepScope
-    public ItemStreamReader<Person> fileReader(@Value("#{jobParameters['file-path']}") String filePath) {
-
-        if (Strings.isNullOrEmpty(filePath)) {
-            filePath = batchProperty.getFilePath();
-        }
-
-        if (!filePath.matches("[a-z]+:.*")) {
-            filePath = "file:" + filePath;
-        }
-
-
-        return new FlatFileItemReaderBuilder<Person>()
-                .name("fileReader")
-                .resource(resourceLoader.getResource(filePath))
-                .delimited()
-                .names(new String[]{"firstName", "lastName"})
-                .fieldSetMapper(new PersonFieldSetMapper())
-                .build();
-    }
-
-
-    @Bean(name="filePersonProcessor")
-    @StepScope
-    public ItemProcessor<Person, Person> processor(@Value("#{jobParameters['action']}") String action) {
+    public ItemProcessor<Person, Person> uppercaseProcessor() {
 
         PersonItemProcessor processor = new PersonItemProcessor();
-        processor.setStringAction(action);
+        processor.setStringAction("UPPERCASE");
         return processor;
     }
 
 
+
     @Bean
-    public ItemWriter<Person> databaseInserterWriter() {
+    public ItemStreamReader<Person> uppercaseDbReader() {
+        return new JdbcCursorItemReaderBuilder<Person>()
+                .name("uppercaseDbReader")
+                .beanRowMapper(Person.class)
+                .dataSource(this.dataSource)
+                .sql("SELECT person_id as id, first_name, last_name FROM Manager_1")
+                .build();
+    }
+
+    @Bean
+    public ItemWriter<Person> dbInserterWriter() {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("INSERT INTO Manager_1 (first_name, last_name) VALUES (:firstName, :lastName)")
+                .sql("INSERT INTO Manager_2 (first_name, last_name) VALUES (:firstName, :lastName)")
                 .build();
     }
 
-    @Bean
-    public Job fileIngestJob() {
 
-        return jobBuilderFactory.get("fileIngestJob")
+    @Bean
+    public Job uppercaseNamesJob() {
+        return jobBuilderFactory.get("sagaRequestJob")
                 .incrementer(new RunIdIncrementer())
-                .flow(stepFile())
+                .flow(stepUppercaseDatabase())
                 .end()
                 .build();
+
     }
-
-
 
     @Bean
-    public Step stepFile() {
-        return stepBuilderFactory.get("ingestFile")
+    public Step stepUppercaseDatabase() {
+        return stepBuilderFactory.get("uppercaseNames")
                 .<Person, Person>chunk(10)
-                .reader(fileReader(null))
-                .processor(processor(null))
-                .writer(databaseInserterWriter())
+                .reader(uppercaseDbReader())
+                .processor(uppercaseProcessor())
+                .writer(dbInserterWriter())
                 .build();
     }
-
 }

@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package io.spring.cloud.dataflow.batch.ingest.config;
+package io.spring.cloud.dataflow.batch.delete.config;
 
 
-import com.google.common.base.Strings;
 import io.spring.cloud.dataflow.batch.domain.Person;
-import io.spring.cloud.dataflow.batch.ingest.mapper.fieldset.PersonFieldSetMapper;
 import io.spring.cloud.dataflow.batch.processor.PersonItemProcessor;
-
-import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -37,13 +32,14 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+
+import javax.sql.DataSource;
 
 
 /**
@@ -53,11 +49,11 @@ import org.springframework.core.io.ResourceLoader;
  * @author David Turanski
  */
 @Configuration
-@EnableConfigurationProperties({BatchProperty.class})
+@EnableConfigurationProperties({ReverseBatchProperty.class})
 @EnableBatchProcessing
-public class BatchConfiguration {
+public class DeleteConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BatchConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeleteConfiguration.class);
 
     private final DataSource dataSource;
 
@@ -67,83 +63,73 @@ public class BatchConfiguration {
 
     private final StepBuilderFactory stepBuilderFactory;
 
+    @Autowired
+    private ReverseBatchProperty batchProperty;
 
     @Autowired
-    private BatchProperty batchProperty;
-
-    @Autowired
-    public BatchConfiguration(final DataSource dataSource, final JobBuilderFactory jobBuilderFactory,
-                              final StepBuilderFactory stepBuilderFactory,
-                              final ResourceLoader resourceLoader) {
+    public DeleteConfiguration(final DataSource dataSource, final JobBuilderFactory jobBuilderFactory,
+                               final StepBuilderFactory stepBuilderFactory,
+                               final ResourceLoader resourceLoader) {
         this.dataSource = dataSource;
         this.resourceLoader = resourceLoader;
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
+        
     }
 
 
-    @Bean
+    @Bean(name="dbPersonProcessor")
     @StepScope
-    public ItemStreamReader<Person> fileReader(@Value("#{jobParameters['file-path']}") String filePath) {
-
-        if (Strings.isNullOrEmpty(filePath)) {
-            filePath = batchProperty.getFilePath();
-        }
-
-        if (!filePath.matches("[a-z]+:.*")) {
-            filePath = "file:" + filePath;
-        }
-
-
-        return new FlatFileItemReaderBuilder<Person>()
-                .name("fileReader")
-                .resource(resourceLoader.getResource(filePath))
-                .delimited()
-                .names(new String[]{"firstName", "lastName"})
-                .fieldSetMapper(new PersonFieldSetMapper())
-                .build();
-    }
-
-
-    @Bean(name="filePersonProcessor")
-    @StepScope
-    public ItemProcessor<Person, Person> processor(@Value("#{jobParameters['action']}") String action) {
+    public ItemProcessor<Person, Person> processor() {
 
         PersonItemProcessor processor = new PersonItemProcessor();
-        processor.setStringAction(action);
         return processor;
     }
 
 
     @Bean
-    public ItemWriter<Person> databaseInserterWriter() {
+    @StepScope
+    public ItemStreamReader<Person> databaseReader() {
+
+
+        return new JdbcCursorItemReaderBuilder<Person>()
+                .name("databaseReader")
+                .beanRowMapper(Person.class)
+                .dataSource(this.dataSource)
+                .sql("SELECT person_id as id, first_name, last_name FROM Manager_3")
+                .build();
+    }
+
+
+    @Bean
+    public ItemWriter<Person> databaseDeleterWriter() {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("INSERT INTO Manager_1 (first_name, last_name) VALUES (:firstName, :lastName)")
+                .sql("DELETE FROM Manager_3 where person_id = :id")
                 .build();
     }
 
-    @Bean
-    public Job fileIngestJob() {
 
-        return jobBuilderFactory.get("fileIngestJob")
+    @Bean
+    public Job deleteNamesJob() {
+        return jobBuilderFactory.get("sagaCompensatingRequestJob")
                 .incrementer(new RunIdIncrementer())
-                .flow(stepFile())
+                .flow(stepDatabase())
                 .end()
                 .build();
-    }
 
+    }
 
 
     @Bean
-    public Step stepFile() {
-        return stepBuilderFactory.get("ingestFile")
+    public Step stepDatabase() {
+        return  stepBuilderFactory.get("deleteNames")
                 .<Person, Person>chunk(10)
-                .reader(fileReader(null))
-                .processor(processor(null))
-                .writer(databaseInserterWriter())
+                .reader(databaseReader())
+                .processor(processor())
+                .writer(databaseDeleterWriter())
                 .build();
-    }
 
+    }
 }
