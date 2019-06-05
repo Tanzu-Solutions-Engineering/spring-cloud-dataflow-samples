@@ -3,6 +3,7 @@
 The projects here contain Spring Batch based applications used to demo [Composed Task](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-composed-task/)
 
 ## Requirements
+- Docker for Desktop 
 - Java 1.8+
 - Maven
 - Database tool to query MySQL to verify results.(Make sure to expose MySQL port locally if using docker)
@@ -13,27 +14,58 @@ Install Docker for your desktop (engine version 18.09.2 or higher)
 
 
 ### Download the code
-
+#### Mac & Linux
 ```bash
 git clone https://github.com/Pivotal-Field-Engineering/spring-cloud-dataflow-samples.git
 ```
+
+#### Windows
+On Windows you might see an error like "filename too long". To fix this, run
+```bash
+git clone -c core.longpaths=true https://github.com/Pivotal-Field-Engineering/spring-cloud-dataflow-samples.git
+```
+
 If you don't have git or git cloning is blocked, try downloading the zip file of the code.
 
 ### Start SCDF
 From the directory where the docker-compose.yml is saved, run:
 
+#### Mac & Linux
 ```bash
 cd spring-cloud-dataflow-samples/batch
 export DATAFLOW_VERSION=2.1.0.RELEASE
 export SKIPPER_VERSION=2.0.2.RELEASE
 docker-compose up
-
 ```
+#### Windows
+```bash
+cd spring-cloud-dataflow-samples/batch
+set DATAFLOW_VERSION=2.1.0.RELEASE
+set SKIPPER_VERSION=2.0.2.RELEASE
+docker-compose up
+```
+
+Open http://localhost:9393/dashboard to see the SCDF UI.
+
+#### Starter Apps
+Click on Apps. If your list is empty, then you company firewall is blocking the repo where the starter apps are being downloaded from.
+
+Try downloading the file `scdf-app-repo-0.0.1-SNAPSHOT.jar` from here https://fil.email/V1WtFXIG which is a executable jar file that can be used to import the apps.
+
+```bash
+java -jar target/scdf-app-repo-0.0.1-SNAPSHOT.jar
+```
+This will run a spring boot app that servers up the apps locally that can be used to bulk import starter apps from the SCDF UI.
+Navigate to Apps and click on "Add Applications" and select the "Bulk Import Application coordinates from an HTTP URI location"
+option. For URI field put in http://host.docker.internal:8080/import
+
+## Connect to MySQL
 
 Connect your favorite MySQL viewer to port 33061 on localhost. **username:**root **password:**rootpw
 
-## Spring Batch Applications
-Open the code in you IDE. There is parent pom in the root. 
+## Custom Spring Batch Demo Applications
+
+The repo contains the following modules.
 
 - **core:** Contains common code used by the rest of the applications
 - **file-ingest:** Spring batch application that reads first name and last name from a given csv file as `filepath` parameter and write to the database table called `Manager_1`. 
@@ -43,8 +75,6 @@ Open the code in you IDE. There is parent pom in the root.
 - **db-delete:** Spring batch application that reads first name and last name from table `Manager_3` table deletes the row
 
 ## Build
-
-### Build.
 
 ```bash
 mvn clean package
