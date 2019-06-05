@@ -49,6 +49,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=rootpw
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
       - spring.cloud.task.batch.failOnJobFailure=true
+      - spring.cloud.task.events.enable=true
 
     depends_on:
       - kafka

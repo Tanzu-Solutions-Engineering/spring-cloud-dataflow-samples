@@ -85,8 +85,14 @@ mvn clean package
 
 Copy the jars to a common directory where SCDF can load them from.
 
+#### Mac & Linux
 ```bash
-./copyTaskss.sh 
+./copyTasks.sh 
+```
+
+#### Windows
+```bash
+copyTasks.bat 
 ```
 
 Register the apps in SCDF
@@ -95,13 +101,24 @@ Register the apps in SCDF
 
 We will use the SCDF shell to install our applications. To run:
 
+#### Mac & Linux
 ```bash
 ./registerApps.sh 
+```
+
+#### Windows
+```bash
+registerApps.bat 
 ```
 
 ## Simple File Ingest
 
 ### Register the file-ingest app with SCDF
+
+Run the SCDF shell
+```bash
+docker exec -it dataflow-server java -jar shell.jar
+```
 
 ### Create task
 ```bash
@@ -136,7 +153,7 @@ In this example we only want to undo the UPPERCASE so we are only doing a Compen
 ### Happy Path  
 #### Create the Composed Task 
 ```bash
-task create ImportUpperBack --definition "Import: Manager_1 && Uppercase: Manager_2 'COMPLETED'->Reverse: Manager_3 '*'->Lowercase: Comp_Manager_2"
+task create SagaHappyPath --definition "Import: Manager_1 && Uppercase: Manager_2 'COMPLETED'->Reverse: Manager_3 '*'->Lowercase: Comp_Manager_2"
 ```
 
 This will create a composed task that looks like the following when created using the SCDF UI:
@@ -144,18 +161,19 @@ This will create a composed task that looks like the following when created usin
 
 #### Run the task
 ```bash
-task launch ImportUpperBack --arguments "--increment-instance-enabled=true"
+task launch SagaHappyPath --arguments "--increment-instance-enabled=true"
 ```
 
 ### Business Failure Path  
 #### Create the Composed Task 
+Demo failure of Uppercase which will cause Lowercase to run and skip reverse
 ```bash
-task create ImportUpperBackFail --definition "Import: Manager_1 --file-path=classpath:bf-names.csv && Uppercase: Manager_2 'COMPLETED'->Reverse: Manager_3 '*'->Lowercase: Comp_Manager_2"
+task create SagaBusFail1 --definition "Import: Manager_1 --file-path=classpath:bf-names.csv && Uppercase: Manager_2 'COMPLETED'->Reverse: Manager_3 '*'->Lowercase: Comp_Manager_2"
 ```
 
 #### Run the task
 ```bash
-task launch ImportUpperBackFail --arguments "--increment-instance-enabled=true"
+task launch SagaBusFail1 --arguments "--increment-instance-enabled=true"
 ```
 
 

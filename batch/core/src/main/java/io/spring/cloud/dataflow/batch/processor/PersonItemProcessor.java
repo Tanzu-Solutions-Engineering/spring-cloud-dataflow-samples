@@ -100,7 +100,7 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 			case REVERSE:
 				if(firstName.equalsIgnoreCase("Paul") && lastName.equalsIgnoreCase("McCartney"))
 				{
-					throw new RuntimeException("Paul McCartney is dead :-)");
+					throw new RuntimeException("Paul McCartney is not dead :-)");
 				}
 				firstName =  new StringBuilder(firstName).reverse().toString();
 				lastName = new StringBuilder(lastName).reverse().toString();

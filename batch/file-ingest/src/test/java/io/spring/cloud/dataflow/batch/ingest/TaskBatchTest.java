@@ -13,7 +13,7 @@ public class TaskBatchTest {
     @Rule
     public OutputCapture outputCapture = new OutputCapture();
 
-    @Test
+   // @Test
     public void testTask() throws Exception {
 
         final String ACTION = "Action is: UPPERCASE";
