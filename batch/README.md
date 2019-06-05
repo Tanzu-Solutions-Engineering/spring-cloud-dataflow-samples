@@ -47,8 +47,8 @@ docker-compose up
 
 Open http://localhost:9393/dashboard to see the SCDF UI.
 
-#### Starter Apps
-Click on Apps. If your list is empty, then you company firewall is blocking the repo where the starter apps are being downloaded from.
+#### Help - I don't see any Apps in my SCDF UI!
+If your Apps list is empty, then your company firewall is blocking the repo where the starter apps are being downloaded from.
 
 Try downloading the file `scdf-app-repo-0.0.1-SNAPSHOT.jar` from here https://fil.email/V1WtFXIG which is a executable jar file that can be used to import the apps.
 
