@@ -47,10 +47,19 @@ docker-compose up
 
 Open http://localhost:9393/dashboard to see the SCDF UI.
 
-#### Help - I don't see any Apps in my SCDF UI!
+#### Help - I don't see any Apps in my SCDF UI! 
 If your Apps list is empty, then your company firewall is blocking the repo where the starter apps are being downloaded from.
 
-Try downloading the file `scdf-app-repo-0.0.1-SNAPSHOT.jar` from here https://fil.email/V1WtFXIG which is a executable jar file that can be used to import the apps.
+Download the `scdf-tool` from https://github.com/spring-cloud-stream-app-starters/scdf-app-tool/releases and unzip the file.
+
+If you need a proxy server in your company then open the `scdf-app-tool` on Liunx/Mac or  if on Windows open `scdf-app-tool.bat` and put in 
+the proxy server details to java command as Id argumets (-Dhttps.proxyHost=<proxyAddress> -Dhttps.proxyPort=<port>)
+
+Then run the `scdf-tool' according the directions here: https://github.com/spring-cloud-stream-app-starters/scdf-app-tool
+
+This will build a Spring boot app that you can use to register the starter apps to your local SCDF.
+
+#### Register the Starter Apps in SCDF
 
 ```bash
 java -jar target/scdf-app-repo-0.0.1-SNAPSHOT.jar

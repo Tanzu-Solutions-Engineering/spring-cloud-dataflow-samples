@@ -79,6 +79,7 @@ services:
       - "7577:7577"
       - "9000-9010:9000-9010"
       - "20000-20105:20000-20105"
+      - '9292-9300:9292-9300'
     environment:
       - SPRING_CLOUD_SKIPPER_SERVER_PLATFORM_LOCAL_ACCOUNTS_DEFAULT_PORTRANGE_LOW=20000
       - SPRING_CLOUD_SKIPPER_SERVER_PLATFORM_LOCAL_ACCOUNTS_DEFAULT_PORTRANGE_HIGH=20100
@@ -96,6 +97,7 @@ services:
       - 'scdf-targets:/etc/prometheus/'
     ports:
       - '9090:9090'
+
     depends_on:
       - service-discovery
 
