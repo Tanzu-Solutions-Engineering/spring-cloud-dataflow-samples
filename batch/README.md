@@ -3,12 +3,12 @@
 The projects here contain Spring Batch based applications used to demo [Composed Task](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-composed-task/)
 
 ## Requirements
-- Docker for Desktop 
+- Docker for Desktop - Set Memory >= 8GB and CPU >=4 in Preferences
 - Java 1.8+
-- Maven
-- Database tool to query MySQL to verify results.(Make sure to expose MySQL port locally if using docker)
+- Maven 3.6+
+- Database tool to query MySQL to verify results.
 
-## Quickstart
+## Setup
 
 Install Docker for your desktop (engine version 18.09.2 or higher)
 
@@ -47,24 +47,32 @@ docker-compose up
 
 Open http://localhost:9393/dashboard to see the SCDF UI.
 
-#### Help - I don't see any Apps in my SCDF UI! 
+### Help - I don't see any Apps in my SCDF UI! 
 If your Apps list is empty, then your company firewall is blocking the repo where the starter apps are being downloaded from.
 
-Download the `scdf-tool` from https://github.com/spring-cloud-stream-app-starters/scdf-app-tool/releases and unzip the file.
+- Download the `scdf-tool` from https://github.com/spring-cloud-stream-app-starters/scdf-app-tool/releases and unzip the file.
 
-If you need a proxy server in your company then open the `scdf-app-tool` on Liunx/Mac or  if on Windows open `scdf-app-tool.bat` and put in 
-the proxy server details to java command as Id argumets (-Dhttps.proxyHost=<proxyAddress> -Dhttps.proxyPort=<port>)
+- Most likely your company requires a proxy server to reach the internet. The `scdf-tool` requires internet access to download apps. 
+Open the file `scdf-app-tool` on Liunx/Mac or `scdf-app-tool.bat` on Windows and put in 
+the proxy server details to the java command as 
+
+```bash
+java -Dhttps.proxyHost=<proxyAddress> -Dhttps.proxyPort=<port> -jar ...
+```
 
 Then run the `scdf-tool' according the directions here: https://github.com/spring-cloud-stream-app-starters/scdf-app-tool
 
-This will build a Spring boot app that you can use to register the starter apps to your local SCDF.
+This will build a Spring Boot app that you can use to register the starter apps to your local SCDF.
 
 #### Register the Starter Apps in SCDF
+
+Run the Spring Boot app that `scdf-tool` created. 
 
 ```bash
 java -jar target/scdf-app-repo-0.0.1-SNAPSHOT.jar
 ```
-This will run a spring boot app that servers up the apps locally that can be used to bulk import starter apps from the SCDF UI.
+
+This will server up the apps locally that can be used to bulk import starter apps from the SCDF UI.
 Navigate to Apps and click on "Add Applications" and select the "Bulk Import Application coordinates from an HTTP URI location"
 option. For URI field put in http://host.docker.internal:8080/import
 
@@ -186,7 +194,7 @@ task launch SagaBusFail1 --arguments "--increment-instance-enabled=true"
 ```
 
 
-#Resources
+# Resources
 
 Helpful resources to get some background on this work
 
