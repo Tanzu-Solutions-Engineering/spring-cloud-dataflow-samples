@@ -69,7 +69,7 @@ public class UppercaseConfigurationTests {
 	public void clearMetadata() {
 		jobRepositoryTestUtils.removeJobExecutions();
 
-		jdbcTemplate.execute("INSERT INTO Manager_1 (first_name, last_name) VALUES " +
+		jdbcTemplate.execute("INSERT INTO Demo_FileImport (first_name, last_name) VALUES " +
 				"('John', 'Doe')," +
 				"('John', 'Doe')," +
 				"('John', 'Doe')," +
@@ -81,7 +81,7 @@ public class UppercaseConfigurationTests {
 	@After
 	public void cleanUp()
 	{
-		jdbcTemplate.execute("DELETE FROM Manager_1; DELETE FROM Manager_2");
+		jdbcTemplate.execute("DELETE FROM Demo_FileImport; DELETE FROM Demo_Case");
 	}
 
 	@Test
@@ -115,7 +115,7 @@ public class UppercaseConfigurationTests {
 		assertEquals("Invalid number of step executions", 1, jobExecution.getStepExecutions().size());
 
 		List<Map<String, Object>> peopleList = jdbcTemplate.queryForList(
-			"select first_name, last_name from Manager_2");
+			"select first_name, last_name from Demo_Case");
 
 		assertEquals("Incorrect number of results", 5, peopleList.size());
 

@@ -1,6 +1,7 @@
 # Spring Batch Demo for Spring Cloud Data Flow
 
-The projects here contain Spring Batch based applications used to demo [Composed Task](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-composed-task/)
+The projects here contain Spring Batch based applications used to demo [Composed Task](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-composed-task/) and 
+Streaming use cases as well as a combination of them
 
 ## Requirements
 - Docker for Desktop - Set Memory >= 8GB and CPU >=4 in Preferences
@@ -85,11 +86,11 @@ Connect your favorite MySQL viewer to port 33061 on localhost. **username:**root
 The repo contains the following modules.
 
 - **core:** Contains common code used by the rest of the applications
-- **file-ingest:** Spring batch application that reads first name and last name from a given csv file as `filepath` parameter and write to the database table called `Manager_1`. 
-- **db-uppercase:** Spring batch application that reads first name and last name from table `Manager_1` table and convert it to uppercase and stores it in table `Manager_2`
-- **db-lowercase:** Spring batch application that reads first name and last name from table `Manager_1` table and convert it to lowercase and stores it in table `Manager_2`
-- **db-reverse:** Spring batch application that reads first name and last name from table `Manager_2` table and reverses the names and stores it in table `Manager_3`
-- **db-delete:** Spring batch application that reads first name and last name from table `Manager_3` table deletes the row
+- **file-ingest:** Spring batch application that reads first name and last name from a given csv file as `localFilePath` parameter and write to the database table called `Demo_FileImport`. 
+- **db-uppercase:** Spring batch application that reads first name and last name from table `Demo_FileImport` table and convert it to uppercase and stores it in table `Demo_Case`
+- **db-lowercase:** Spring batch application that reads first name and last name from table `Demo_Case` table and convert it to lowercase and stores it in table `Demo_Case`
+- **db-reverse:** Spring batch application that reads first name and last name from table `Demo_Case` table and reverses the names and stores it in table `Demo_Reverse`
+- **db-delete:** Spring batch application that reads first name and last name from table `Demo_Reverse` table deletes the row
 
 ## Build
 
@@ -139,7 +140,7 @@ docker exec -it dataflow-server java -jar shell.jar
 
 ### Create task
 ```bash
-task create ImportTask --definition "ImportFile: Manager_1"
+task create ImportTask --definition "Import: FileIngestApp"
 ```
 
 ### Run the task
@@ -151,7 +152,7 @@ task launch ImportTask --arguments "--increment-instance-enabled=true"
 
 ### Create task
 ```bash
-task create UppercaseTask --definition "ImportFile: Manager_1 && Uppercase: Manager_2"
+task create UppercaseTask --definition "ImportFile: FileIngestApp && Uppercase: UppercaseApp"
 ```
 
 ### Run the task
@@ -170,7 +171,7 @@ In this example we only want to undo the UPPERCASE so we are only doing a Compen
 ### Happy Path  
 #### Create the Composed Task 
 ```bash
-task create SagaHappyPath --definition "Import: Manager_1 && Uppercase: Manager_2 'COMPLETED'->Reverse: Manager_3 '*'->Lowercase: Comp_Manager_2"
+task create SagaHappyPath --definition "Import: FileIngestApp && Uppercase: UppercaseApp 'COMPLETED'->Reverse: ReverseApp '*'->Lowercase: LowercaseApp"
 ```
 
 This will create a composed task that looks like the following when created using the SCDF UI:
@@ -185,7 +186,7 @@ task launch SagaHappyPath --arguments "--increment-instance-enabled=true"
 #### Create the Composed Task 
 Demo failure of Uppercase which will cause Lowercase to run and skip reverse
 ```bash
-task create SagaBusFail1 --definition "Import: Manager_1 --file-path=classpath:bf-names.csv && Uppercase: Manager_2 'COMPLETED'->Reverse: Manager_3 '*'->Lowercase: Comp_Manager_2"
+task create SagaBusFail1 --definition "Import: FileIngestApp --localFilePath=classpath:bf-names.csv && Uppercase: UppercaseApp 'COMPLETED'->Reverse: ReverseApp '*'->Lowercase: LowercaseApp"
 ```
 
 #### Run the task

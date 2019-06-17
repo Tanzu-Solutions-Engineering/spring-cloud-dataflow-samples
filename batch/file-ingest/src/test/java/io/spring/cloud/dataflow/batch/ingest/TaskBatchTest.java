@@ -18,7 +18,7 @@ public class TaskBatchTest {
 
         final String ACTION = "Action is: UPPERCASE";
 
-        String[] args = {"action=UPPERCASE", "file-path=classpath:1-names.csv"};
+        String[] args = {"action=UPPERCASE", "localFilePath=classpath:1-names.csv"};
 
         SpringApplication.run(Application.class, args);
         String output = this.outputCapture.toString();

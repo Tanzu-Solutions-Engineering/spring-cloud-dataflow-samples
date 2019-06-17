@@ -97,7 +97,7 @@ public class ReverseConfiguration {
                 .name("databaseReader")
                 .beanRowMapper(Person.class)
                 .dataSource(this.dataSource)
-                .sql("SELECT person_id as id, first_name, last_name FROM Manager_2")
+                .sql("SELECT person_id as id, first_name, last_name FROM Demo_Case")
                 .build();
     }
 
@@ -106,14 +106,14 @@ public class ReverseConfiguration {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("INSERT INTO Manager_3 (first_name, last_name) VALUES (:firstName, :lastName)")
+                .sql("INSERT INTO Demo_Reverse (first_name, last_name) VALUES (:firstName, :lastName)")
                 .build();
     }
 
 
     @Bean
     public Job reverseNamesJob() {
-        return jobBuilderFactory.get("sagaRequestJob")
+        return jobBuilderFactory.get("reverseJob")
                 .incrementer(new RunIdIncrementer())
                 .flow(stepDatabase())
                 .end()

@@ -75,7 +75,7 @@ public class BatchApplicationTests {
 
     @After
     public void cleanup() {
-        jdbcTemplate.execute("delete from Manager_1");
+        jdbcTemplate.execute("delete from Demo_FileImport");
     }
 
     @Test
@@ -83,7 +83,7 @@ public class BatchApplicationTests {
 
 
         BatchStatus status = jobLauncherTestUtils.launchJob(new JobParametersBuilder().addString(
-                "file-path", "classpath:missing-data.csv").toJobParameters()).getStatus();
+                "localFilePath", "classpath:missing-data.csv").toJobParameters()).getStatus();
         assertEquals("Incorrect batch status", BatchStatus.FAILED, status);
     }
 
@@ -92,7 +92,7 @@ public class BatchApplicationTests {
 
         JobExecution jobExecution = jobLauncherTestUtils.launchJob(
                 new JobParametersBuilder()
-                        .addString("file-path", "classpath:data.csv")
+                        .addString("localFilePath", "classpath:data.csv")
                         .toJobParameters());
 
         CheckJobResult(jobExecution, PersonItemProcessor.Action.NONE);
@@ -104,7 +104,7 @@ public class BatchApplicationTests {
 
         JobExecution jobExecution3 = jobLauncherTestUtils.launchJob(
                 new JobParametersBuilder()
-                        .addString("file-path", "classpath:data.csv")
+                        .addString("localFilePath", "classpath:data.csv")
                         .addString("action", "UPPERCASE")
                         .toJobParameters());
         CheckJobResult(jobExecution3, PersonItemProcessor.Action.UPPERCASE);
@@ -114,7 +114,7 @@ public class BatchApplicationTests {
     public void testBatchDataFileInjestBackwards() throws Exception {
         JobExecution jobExecution4 = jobLauncherTestUtils.launchJob(
                 new JobParametersBuilder()
-                        .addString("file-path", "classpath:data.csv")
+                        .addString("localFilePath", "classpath:data.csv")
                         .addString("action", "REVERSE")
                         .toJobParameters());
         CheckJobResult(jobExecution4, PersonItemProcessor.Action.REVERSE);
@@ -142,7 +142,7 @@ public class BatchApplicationTests {
 
     private void CheckResultInDatabase(PersonItemProcessor.Action action) {
         List<Map<String, Object>> peopleList = jdbcTemplate.queryForList(
-                "select first_name, last_name from Manager_1");
+                "select first_name, last_name from Demo_FileImport");
 
         assertEquals("Incorrect number of results", 5, peopleList.size());
 

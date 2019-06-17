@@ -96,7 +96,7 @@ public class DeleteConfiguration {
                 .name("databaseReader")
                 .beanRowMapper(Person.class)
                 .dataSource(this.dataSource)
-                .sql("SELECT person_id as id, first_name, last_name FROM Manager_3")
+                .sql("SELECT person_id as id, first_name, last_name FROM Demo_Reverse")
                 .build();
     }
 
@@ -106,14 +106,14 @@ public class DeleteConfiguration {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("DELETE FROM Manager_3 where person_id = :id")
+                .sql("DELETE FROM Demo_Reverse where person_id = :id")
                 .build();
     }
 
 
     @Bean
     public Job deleteNamesJob() {
-        return jobBuilderFactory.get("sagaCompensatingRequestJob")
+        return jobBuilderFactory.get("deleteJob")
                 .incrementer(new RunIdIncrementer())
                 .flow(stepDatabase())
                 .end()

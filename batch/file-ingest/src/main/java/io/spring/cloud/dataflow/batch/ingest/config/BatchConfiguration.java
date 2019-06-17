@@ -84,10 +84,10 @@ public class BatchConfiguration {
 
     @Bean
     @StepScope
-    public ItemStreamReader<Person> fileReader(@Value("#{jobParameters['file-path']}") String filePath) {
+    public ItemStreamReader<Person> fileReader(@Value("#{jobParameters['localFilePath']}") String filePath) {
 
         if (Strings.isNullOrEmpty(filePath)) {
-            filePath = batchProperty.getFilePath();
+            filePath = batchProperty.getLocalFilePath();
         }
 
         if (!filePath.matches("[a-z]+:.*")) {
@@ -120,7 +120,7 @@ public class BatchConfiguration {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("INSERT INTO Manager_1 (first_name, last_name) VALUES (:firstName, :lastName)")
+                .sql("INSERT INTO Demo_FileImport (first_name, last_name) VALUES (:firstName, :lastName)")
                 .build();
     }
 

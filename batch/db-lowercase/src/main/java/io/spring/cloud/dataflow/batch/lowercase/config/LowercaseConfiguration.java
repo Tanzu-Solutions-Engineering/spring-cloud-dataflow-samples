@@ -96,7 +96,7 @@ public class LowercaseConfiguration {
                 .name("lowercaseDbReader")
                 .beanRowMapper(Person.class)
                 .dataSource(this.dataSource)
-                .sql("SELECT person_id as id, first_name, last_name FROM Manager_2")
+                .sql("SELECT person_id as id, first_name, last_name FROM Demo_Case")
                 .build();
     }
 
@@ -105,14 +105,14 @@ public class LowercaseConfiguration {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("UPDATE Manager_2 SET first_name = :firstName,  last_name = :lastName WHERE person_id = :id")
+                .sql("UPDATE Demo_Case SET first_name = :firstName,  last_name = :lastName WHERE person_id = :id")
                 .build();
     }
 
 
     @Bean
     public Job lowercaseNamesJob() {
-        return jobBuilderFactory.get("sagaCompensatingRequestJob")
+        return jobBuilderFactory.get("lowercaseJob")
                 .incrementer(new RunIdIncrementer())
                 .flow(stepLowercaseDatabase())
                 .end()

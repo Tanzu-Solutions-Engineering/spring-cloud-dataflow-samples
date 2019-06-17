@@ -88,6 +88,9 @@ services:
       - SPRING_DATASOURCE_PASSWORD=rootpw
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
 
+    volumes:
+      - './tasks:/opt/app/tasks'
+
   # Grafana is configured with the Prometheus datasource.
   # Use `docker exec -it prometheus /bin/sh` to logging in the container
   prometheus:

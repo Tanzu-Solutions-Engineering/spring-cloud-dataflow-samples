@@ -69,7 +69,7 @@ public class ReverseConfigurationTests {
 	public void clearMetadata() {
 		jobRepositoryTestUtils.removeJobExecutions();
 
-		jdbcTemplate.execute("INSERT INTO Manager_2 (first_name, last_name) VALUES " +
+		jdbcTemplate.execute("INSERT INTO Demo_Case (first_name, last_name) VALUES " +
 				"('John', 'Doe')," +
 				"('John', 'Doe')," +
 				"('John', 'Doe')," +
@@ -80,7 +80,7 @@ public class ReverseConfigurationTests {
 	@After
 	public void cleanUp()
 	{
-		jdbcTemplate.execute("DELETE FROM Manager_2; DELETE FROM Manager_3");
+		jdbcTemplate.execute("DELETE FROM Demo_Case; DELETE FROM Demo_Reverse");
 	}
 
 	@Test
@@ -114,7 +114,7 @@ public class ReverseConfigurationTests {
 		assertEquals("Invalid number of step executions", 1, jobExecution.getStepExecutions().size());
 
 		List<Map<String, Object>> peopleList = jdbcTemplate.queryForList(
-			"select first_name, last_name from Manager_3");
+			"select first_name, last_name from Demo_Reverse");
 
 		assertEquals("Incorrect number of results", 5, peopleList.size());
 

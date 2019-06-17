@@ -9,9 +9,9 @@ public class BatchProperty {
 
 
     /**
-     * FilePath to process. classpath:data.csv by default
+     * localFilePath to process. classpath:data.csv by default
      */
-     String filePath = "classpath:data.csv";
+     String localFilePath = "classpath:data.csv";
 
     /**
      * Action to perform on the names. Values can be NONE, UPPERCASE,LOWERCASE, REVERSE
@@ -20,13 +20,13 @@ public class BatchProperty {
     PersonItemProcessor.Action action = PersonItemProcessor.Action.NONE;
 
 
-    public String getFilePath() {
-        Assert.hasText(filePath, "format must not be empty nor null");
-        return filePath;
+    public String getLocalFilePath() {
+        Assert.hasText(localFilePath, "format must not be empty nor null");
+        return localFilePath;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
+    public void setLocalFilePath(String localFilePath) {
+        this.localFilePath = localFilePath;
     }
 
 

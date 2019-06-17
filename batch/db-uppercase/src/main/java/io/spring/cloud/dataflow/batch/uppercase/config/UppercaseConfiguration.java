@@ -96,7 +96,7 @@ public class UppercaseConfiguration {
                 .name("uppercaseDbReader")
                 .beanRowMapper(Person.class)
                 .dataSource(this.dataSource)
-                .sql("SELECT person_id as id, first_name, last_name FROM Manager_1")
+                .sql("SELECT person_id as id, first_name, last_name FROM Demo_FileImport")
                 .build();
     }
 
@@ -105,14 +105,14 @@ public class UppercaseConfiguration {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .beanMapped()
                 .dataSource(this.dataSource)
-                .sql("INSERT INTO Manager_2 (first_name, last_name) VALUES (:firstName, :lastName)")
+                .sql("INSERT INTO Demo_Case (first_name, last_name) VALUES (:firstName, :lastName)")
                 .build();
     }
 
 
     @Bean
     public Job uppercaseNamesJob() {
-        return jobBuilderFactory.get("sagaRequestJob")
+        return jobBuilderFactory.get("uppercaseJob")
                 .incrementer(new RunIdIncrementer())
                 .flow(stepUppercaseDatabase())
                 .end()
